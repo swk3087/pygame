@@ -162,7 +162,7 @@ class GameScene:
                 return
 
     def _try_rotate_gravity(self, rotate_delta: int) -> None:
-        if self.rotate_cooldown > 0.0 or self.player is None:
+        if self.rotate_cooldown > 0.0 or self.player is None or self.tilemap is None:
             return
         if rotate_delta > 0:
             self.gravity_dir = (self.gravity_dir + 1) % 4
@@ -170,6 +170,7 @@ class GameScene:
         else:
             self.gravity_dir = (self.gravity_dir - 1) % 4
             self.player.rotate_velocity_cw()
+        self.player.snap_to_nearest_tile(self.tilemap)
         self.rotate_cooldown = ROTATE_COOLDOWN_SEC
         self.click_count += 1
         self.game.assets.play("rotate")

@@ -4,7 +4,7 @@ import pygame
 
 from core.config import GRAVITY_ACC, MAX_SPEED
 from core.utils import clamp_vec_magnitude, rotate_vec_ccw, rotate_vec_cw
-from gameplay.tilemap import TileMap
+from gameplay.tilemap import SPIKE, WALL, TileMap
 
 
 class Player:
@@ -44,6 +44,41 @@ class Player:
         self._resolve_collisions_x(tilemap)
         self.pos.y += self.vel.y * dt
         self._resolve_collisions_y(tilemap)
+
+    def snap_to_nearest_tile(self, tilemap: TileMap) -> None:
+        current = pygame.Vector2(self.center)
+        tile_size = tilemap.tile_size
+
+        best_safe_center: tuple[float, float] | None = None
+        best_safe_dist2 = float("inf")
+        best_any_center: tuple[float, float] | None = None
+        best_any_dist2 = float("inf")
+
+        for ty in range(tilemap.height):
+            for tx in range(tilemap.width):
+                tile_type = tilemap.tile_type_at(tx, ty)
+                if tile_type == WALL:
+                    continue
+
+                center = (
+                    tx * tile_size + tile_size / 2.0,
+                    ty * tile_size + tile_size / 2.0,
+                )
+                dx = center[0] - current.x
+                dy = center[1] - current.y
+                dist2 = dx * dx + dy * dy
+
+                if dist2 < best_any_dist2:
+                    best_any_dist2 = dist2
+                    best_any_center = center
+
+                if tile_type != SPIKE and dist2 < best_safe_dist2:
+                    best_safe_dist2 = dist2
+                    best_safe_center = center
+
+        target = best_safe_center if best_safe_center is not None else best_any_center
+        if target is not None:
+            self.set_center(target)
 
     def _resolve_collisions_x(self, tilemap: TileMap) -> None:
         player_rect = self.rect
