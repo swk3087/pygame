@@ -46,6 +46,7 @@ class GameScene:
         self.paused = False
         self.pause_buttons = self._build_pause_buttons()
         self.show_ui_text = False
+        self.zero_key_held = False
 
         self.gravity_dir = 0
         self.rotate_cooldown = 0.0
@@ -101,6 +102,10 @@ class GameScene:
         return buttons
 
     def handle_event(self, event) -> None:
+        if event.type == pygame.KEYUP and event.key in {pygame.K_0, pygame.K_KP0}:
+            self.zero_key_held = False
+            return
+
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 if self.load_error:
@@ -109,6 +114,7 @@ class GameScene:
                     self.paused = not self.paused
                 return
             if event.key in {pygame.K_0, pygame.K_KP0}:
+                self.zero_key_held = True
                 self.show_ui_text = not self.show_ui_text
                 return
             if event.key == pygame.K_r and not self.load_error:
@@ -119,7 +125,10 @@ class GameScene:
         rotate_delta = 0
         if event.type == pygame.MOUSEBUTTONDOWN and event.button in {1, 3}:
             click_pos = self.game.window_to_base(event.pos)
-            rotate_delta = 1 if event.button == 1 else -1
+            if event.button == 1:
+                rotate_delta = 1
+            elif event.button == 3 and self.zero_key_held:
+                rotate_delta = -1
         elif event.type == pygame.FINGERDOWN:
             click_pos = self.game.finger_to_base(event.x, event.y)
             if click_pos is not None:
