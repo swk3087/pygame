@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "006_portal_cycle",
-    "name": "포탈 순환",
+    "name": "중간 3: 포탈 순환",
     "author": "map-maker",
     "version": 1
   },
@@ -38,4 +38,3 @@
     "allow_spikes": false
   }
 }
-

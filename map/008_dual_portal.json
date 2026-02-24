@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "008_dual_portal",
-    "name": "듀얼 포탈",
+    "name": "고난도 1: 듀얼 포탈",
     "author": "map-maker",
     "version": 1
   },
@@ -39,4 +39,3 @@
     "allow_spikes": false
   }
 }
-

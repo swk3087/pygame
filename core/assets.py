@@ -9,11 +9,32 @@ class AssetManager:
     def __init__(self, asset_root: Path) -> None:
         self.asset_root = asset_root
         self._font_cache: dict[tuple[int, bool], pygame.font.Font] = {}
+        self._font_name = self._pick_ui_font_name()
         self.master_volume = 0.7
         self._mixer_ready = False
         self._sounds: dict[str, pygame.mixer.Sound] = {}
         self._setup_audio()
         self._load_optional_sounds()
+
+    @staticmethod
+    def _pick_ui_font_name() -> str:
+        available = set(pygame.font.get_fonts())
+        # Korean-capable fonts first to prevent broken Hangul glyphs.
+        preferred = [
+            "malgungothic",
+            "nanumgothic",
+            "notosanskr",
+            "dotum",
+            "gulim",
+            "batang",
+            "segoeuisemibold",
+            "arial",
+            "sans",
+        ]
+        for name in preferred:
+            if name.replace(" ", "") in available:
+                return name
+        return "sans"
 
     def _setup_audio(self) -> None:
         try:
@@ -44,8 +65,7 @@ class AssetManager:
         key = (size, bold)
         if key in self._font_cache:
             return self._font_cache[key]
-        preferred = ["malgungothic", "nanumgothic", "arial", "sans"]
-        font = pygame.font.SysFont(preferred, size, bold=bold)
+        font = pygame.font.SysFont(self._font_name, size, bold=bold)
         self._font_cache[key] = font
         return font
 
@@ -59,4 +79,3 @@ class AssetManager:
         if sound is None:
             return
         sound.play()
-

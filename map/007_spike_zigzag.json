@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "007_spike_zigzag",
-    "name": "가시 지그재그",
+    "name": "중간 4: 지그재그 가시",
     "author": "map-maker",
     "version": 1
   },
@@ -37,4 +37,3 @@
     "allow_spikes": true
   }
 }
-
