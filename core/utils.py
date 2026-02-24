@@ -19,6 +19,10 @@ def rotate_vec_ccw(vec: pygame.Vector2) -> pygame.Vector2:
     return pygame.Vector2(-vec.y, vec.x)
 
 
+def rotate_vec_cw(vec: pygame.Vector2) -> pygame.Vector2:
+    return pygame.Vector2(vec.y, -vec.x)
+
+
 def clamp_vec_magnitude(vec: pygame.Vector2, max_length: float) -> pygame.Vector2:
     length = vec.length()
     if length <= max_length or length == 0.0:
@@ -66,4 +70,3 @@ def draw_button(
 def rand_unit_vec() -> pygame.Vector2:
     angle = math.radians(pygame.time.get_ticks() % 360)
     return pygame.Vector2(math.cos(angle), math.sin(angle))
-

@@ -3,7 +3,7 @@ from __future__ import annotations
 import pygame
 
 from core.config import GRAVITY_ACC, MAX_SPEED
-from core.utils import clamp_vec_magnitude, rotate_vec_ccw
+from core.utils import clamp_vec_magnitude, rotate_vec_ccw, rotate_vec_cw
 from gameplay.tilemap import TileMap
 
 
@@ -32,6 +32,9 @@ class Player:
 
     def rotate_velocity_ccw(self) -> None:
         self.vel = rotate_vec_ccw(self.vel)
+
+    def rotate_velocity_cw(self) -> None:
+        self.vel = rotate_vec_cw(self.vel)
 
     def update(self, dt: float, gravity_vec: pygame.Vector2, tilemap: TileMap) -> None:
         self.vel += gravity_vec * GRAVITY_ACC * dt

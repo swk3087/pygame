@@ -45,6 +45,7 @@ class GameScene:
 
         self.paused = False
         self.pause_buttons = self._build_pause_buttons()
+        self.show_ui_text = False
 
         self.gravity_dir = 0
         self.rotate_cooldown = 0.0
@@ -107,15 +108,22 @@ class GameScene:
                 else:
                     self.paused = not self.paused
                 return
+            if event.key in {pygame.K_0, pygame.K_KP0}:
+                self.show_ui_text = not self.show_ui_text
+                return
             if event.key == pygame.K_r and not self.load_error:
                 self.game.start_level(self.level_index)
                 return
 
         click_pos = None
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+        rotate_delta = 0
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button in {1, 3}:
             click_pos = self.game.window_to_base(event.pos)
+            rotate_delta = 1 if event.button == 1 else -1
         elif event.type == pygame.FINGERDOWN:
             click_pos = self.game.finger_to_base(event.x, event.y)
+            if click_pos is not None:
+                rotate_delta = 1 if click_pos[0] < BASE_W // 2 else -1
         if click_pos is None:
             return
 
@@ -128,7 +136,8 @@ class GameScene:
             self._handle_pause_click(click_pos)
             return
 
-        self._try_rotate_gravity()
+        if rotate_delta != 0:
+            self._try_rotate_gravity(rotate_delta)
 
     def _handle_pause_click(self, click_pos: tuple[int, int]) -> None:
         for button in self.pause_buttons:
@@ -143,11 +152,15 @@ class GameScene:
                     self.game.open_main_menu()
                 return
 
-    def _try_rotate_gravity(self) -> None:
+    def _try_rotate_gravity(self, rotate_delta: int) -> None:
         if self.rotate_cooldown > 0.0 or self.player is None:
             return
-        self.gravity_dir = (self.gravity_dir + 1) % 4
-        self.player.rotate_velocity_ccw()
+        if rotate_delta > 0:
+            self.gravity_dir = (self.gravity_dir + 1) % 4
+            self.player.rotate_velocity_ccw()
+        else:
+            self.gravity_dir = (self.gravity_dir - 1) % 4
+            self.player.rotate_velocity_cw()
         self.rotate_cooldown = ROTATE_COOLDOWN_SEC
         self.click_count += 1
         self.game.assets.play("rotate")
@@ -274,7 +287,8 @@ class GameScene:
         self.tilemap.draw(surface, self.elapsed_sec, camera_offset)
         self.particles.draw(surface, camera_offset)
         self._draw_player(surface, camera_offset)
-        self._draw_hud(surface)
+        if self.show_ui_text:
+            self._draw_hud(surface)
 
         if self.teleport_flash_sec > 0:
             alpha = int(180 * (self.teleport_flash_sec / TELEPORT_FLASH_SEC))
