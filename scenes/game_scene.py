@@ -74,7 +74,7 @@ class GameScene:
             return
 
         self.tilemap = tilemap
-        self.player = Player(tilemap.spawn_px)
+        self.player = Player(tilemap.spawn_px, tilemap.tile_size)
         self.portal_system = PortalSystem(tilemap.tile_size, tilemap.portal_groups)
         map_w, map_h = tilemap.pixel_size
         self.map_draw_origin = pygame.Vector2((BASE_W - map_w) / 2.0, (BASE_H - map_h) / 2.0)
@@ -197,7 +197,7 @@ class GameScene:
                 break
 
         if self.portal_system is not None:
-            tp = self.portal_system.try_teleport(self.player.center, self.elapsed_sec)
+            tp = self.portal_system.try_teleport(self.player.rect, self.elapsed_sec)
             if tp is not None:
                 self.player.set_center(tp.destination_center)
                 self.teleport_flash_sec = TELEPORT_FLASH_SEC
@@ -275,7 +275,6 @@ class GameScene:
         self.particles.draw(surface, camera_offset)
         self._draw_player(surface, camera_offset)
         self._draw_hud(surface)
-        self._draw_tutorial(surface, camera_offset)
 
         if self.teleport_flash_sec > 0:
             alpha = int(180 * (self.teleport_flash_sec / TELEPORT_FLASH_SEC))
@@ -308,20 +307,6 @@ class GameScene:
         rect = self.player.rect.move(int(camera_offset.x), int(camera_offset.y))
         pygame.draw.rect(surface, (255, 206, 92), rect, border_radius=4)
         pygame.draw.rect(surface, (72, 58, 26), rect, width=2, border_radius=4)
-
-    def _draw_tutorial(self, surface: pygame.Surface, camera_offset: pygame.Vector2) -> None:
-        if self.tilemap is None:
-            return
-        for entry in self.tilemap.tutorial_entries:
-            tx, ty = entry.at
-            x = int(tx * self.tilemap.tile_size + camera_offset.x)
-            y = int(ty * self.tilemap.tile_size + camera_offset.y)
-            text = self.info_font.render(entry.message, True, (240, 244, 252))
-            text_rect = text.get_rect(topleft=(x + 4, y - 24))
-            box = text_rect.inflate(14, 10)
-            pygame.draw.rect(surface, (8, 14, 24, 188), box, border_radius=6)
-            pygame.draw.rect(surface, (70, 96, 140), box, width=1, border_radius=6)
-            surface.blit(text, text_rect)
 
     def _draw_pause_overlay(self, surface: pygame.Surface) -> None:
         overlay = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
@@ -359,4 +344,3 @@ class GameScene:
         overlay = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
         overlay.fill((0, 0, 0, int(self.fade_alpha)))
         surface.blit(overlay, (0, 0))
-

@@ -31,16 +31,9 @@
     "#..................#",
     "####################"
   ],
-  "tutorial": [
-    {
-      "type": "text",
-      "at": [2, 1],
-      "message": "가시에 닿으면 스폰 지점으로 리스폰됩니다."
-    }
-  ],
+  "tutorial": [],
   "rules": {
     "time_limit_sec": null,
     "allow_spikes": true
   }
 }
-

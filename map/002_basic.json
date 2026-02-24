@@ -31,16 +31,9 @@
     "#..................#",
     "####################"
   ],
-  "tutorial": [
-    {
-      "type": "text",
-      "at": [2, 1],
-      "message": "벽 모서리를 이용해 진행 경로를 만드세요."
-    }
-  ],
+  "tutorial": [],
   "rules": {
     "time_limit_sec": null,
     "allow_spikes": false
   }
 }
-

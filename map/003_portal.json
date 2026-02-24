@@ -33,21 +33,9 @@
     "#..................#",
     "####################"
   ],
-  "tutorial": [
-    {
-      "type": "text",
-      "at": [2, 1],
-      "message": "같은 번호 포탈은 순서대로 이동합니다."
-    },
-    {
-      "type": "text",
-      "at": [2, 2],
-      "message": "텔레포트 직후에는 짧은 재진입 쿨다운이 있습니다."
-    }
-  ],
+  "tutorial": [],
   "rules": {
     "time_limit_sec": null,
     "allow_spikes": false
   }
 }
-

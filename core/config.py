@@ -10,7 +10,6 @@ BASE_H = 540
 FPS = 60
 DT_CLAMP_MAX = 1.0 / 30.0
 
-PLAYER_SIZE = 24
 GRAVITY_ACC = 1200.0
 MAX_SPEED = 520.0
 ROTATE_COOLDOWN_SEC = 0.06
@@ -30,4 +29,3 @@ DEFAULT_SETTINGS = {
     "screen_scale": 1,
     "screen_shake": True,
 }
-

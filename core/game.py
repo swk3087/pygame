@@ -44,6 +44,7 @@ class Game:
         self.screen = pygame.Surface((BASE_W, BASE_H))
         self.output_rect = pygame.Rect(0, 0, BASE_W, BASE_H)
         self.present_size = (BASE_W, BASE_H)
+        self.min_window_size = (480, 270)
         self._apply_display_mode()
         self.base_surface = pygame.Surface((BASE_W, BASE_H))
 
@@ -69,16 +70,20 @@ class Game:
         else:
             self.save_data["unlocked_level_count"] = max(1, min(level_count, unlocked))
 
-    def _apply_display_mode(self) -> None:
+    def _apply_display_mode(self, window_size: tuple[int, int] | None = None) -> None:
         fullscreen = bool(self.settings.get("fullscreen", False))
         if fullscreen:
             flags = pygame.FULLSCREEN
             self.screen = pygame.display.set_mode((0, 0), flags)
         else:
-            scale = int(self.settings.get("screen_scale", 1))
-            win_w = BASE_W * max(1, min(3, scale))
-            win_h = BASE_H * max(1, min(3, scale))
-            self.screen = pygame.display.set_mode((win_w, win_h))
+            if window_size is None:
+                scale = int(self.settings.get("screen_scale", 1))
+                win_w = BASE_W * max(1, min(3, scale))
+                win_h = BASE_H * max(1, min(3, scale))
+            else:
+                win_w = max(self.min_window_size[0], int(window_size[0]))
+                win_h = max(self.min_window_size[1], int(window_size[1]))
+            self.screen = pygame.display.set_mode((win_w, win_h), pygame.RESIZABLE)
         self.present_size = self.screen.get_size()
         self.output_rect = self._calc_output_rect(self.present_size[0], self.present_size[1])
         pygame.display.set_caption(TITLE)
@@ -183,6 +188,18 @@ class Game:
                 if event.type == pygame.QUIT:
                     self.running = False
                     break
+                if event.type == pygame.VIDEORESIZE and not self.settings.get("fullscreen", False):
+                    self._apply_display_mode((event.w, event.h))
+                    continue
+                if (
+                    event.type == pygame.WINDOWSIZECHANGED
+                    and not self.settings.get("fullscreen", False)
+                ):
+                    self.present_size = self.screen.get_size()
+                    self.output_rect = self._calc_output_rect(
+                        self.present_size[0], self.present_size[1]
+                    )
+                    continue
                 scene = self.scene_manager.current_scene()
                 if scene is None:
                     self.running = False

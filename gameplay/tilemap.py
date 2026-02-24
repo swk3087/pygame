@@ -263,7 +263,7 @@ class TileMap:
         wall_edge = (32, 40, 60)
         goal_color = (88, 176, 106)
         spike_color = (193, 83, 83)
-        spawn_color = (90, 140, 212)
+        spawn_color = (100, 112, 138)
         portal_color = (102, 212, 214)
 
         for ty in range(self.height):
@@ -283,12 +283,17 @@ class TileMap:
                     pygame.draw.polygon(surface, spike_color, [p1, p2, p3])
                 elif tile_type == SPAWN:
                     pygame.draw.rect(surface, spawn_color, rect.inflate(-8, -8), border_radius=5)
+                    pygame.draw.rect(
+                        surface, (42, 50, 66), rect.inflate(-8, -8), width=1, border_radius=5
+                    )
 
         for group in self.portal_groups.values():
             for node in group:
                 rect = node.rect(self.tile_size).move(offset_x, offset_y)
                 center = rect.center
+                portal_fill = rect.inflate(-8, -8)
+                pygame.draw.rect(surface, (34, 86, 110), portal_fill, border_radius=7)
+                pygame.draw.rect(surface, (18, 38, 50), portal_fill, width=1, border_radius=7)
                 ring_radius = int(self.tile_size * (0.2 + (elapsed_sec * 2.0 % 1.0) * 0.4))
                 pygame.draw.circle(surface, portal_color, center, max(6, ring_radius), width=2)
                 pygame.draw.circle(surface, (30, 85, 90), center, max(2, ring_radius - 5), width=1)
-

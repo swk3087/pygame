@@ -25,19 +25,19 @@ class PortalSystem:
 
     def try_teleport(
         self,
-        player_rect_center: tuple[float, float],
+        player_rect: pygame.Rect,
         now_sec: float,
     ) -> TeleportResult | None:
-        if self._blocked_rect and not self._blocked_rect.collidepoint(player_rect_center):
+        if self._blocked_rect and not self._blocked_rect.colliderect(player_rect):
             self._blocked_rect = None
 
         if now_sec - self._last_teleport_time < self.cooldown_sec:
             return None
 
-        source_node = self._find_current_node(player_rect_center)
+        source_node = self._find_current_node(player_rect)
         if source_node is None:
             return None
-        if self._blocked_rect and self._blocked_rect.collidepoint(player_rect_center):
+        if self._blocked_rect and self._blocked_rect.colliderect(player_rect):
             return None
 
         group = self.portal_groups.get(source_node.portal_id, [])
@@ -55,10 +55,9 @@ class PortalSystem:
             destination_id=destination_node.portal_id,
         )
 
-    def _find_current_node(self, player_center: tuple[float, float]) -> PortalNode | None:
+    def _find_current_node(self, player_rect: pygame.Rect) -> PortalNode | None:
         for group_nodes in self.portal_groups.values():
             for node in group_nodes:
-                if node.rect(self.tile_size).collidepoint(player_center):
+                if node.rect(self.tile_size).colliderect(player_rect):
                     return node
         return None
-

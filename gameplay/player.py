@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import pygame
 
-from core.config import GRAVITY_ACC, MAX_SPEED, PLAYER_SIZE
+from core.config import GRAVITY_ACC, MAX_SPEED
 from core.utils import clamp_vec_magnitude, rotate_vec_ccw
 from gameplay.tilemap import TileMap
 
 
 class Player:
-    def __init__(self, spawn_center: tuple[float, float]) -> None:
-        self.size = PLAYER_SIZE
+    def __init__(self, spawn_center: tuple[float, float], size: int) -> None:
+        self.size = size
         self.pos = pygame.Vector2(0.0, 0.0)
         self.vel = pygame.Vector2(0.0, 0.0)
         self.respawn(spawn_center)
@@ -65,4 +65,3 @@ class Player:
                 self.pos.y = solid.bottom
             self.vel.y = 0.0
             player_rect = self.rect
-
