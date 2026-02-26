@@ -35,3 +35,5 @@ Thumbs.db
 save.json
 *.log
 
+# /e web editor dependencies
+e/node_modules/
