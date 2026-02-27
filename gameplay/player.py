@@ -48,16 +48,14 @@ class Player:
     def snap_to_nearest_tile(self, tilemap: TileMap) -> None:
         current = pygame.Vector2(self.center)
         tile_size = tilemap.tile_size
-        current_tx, current_ty = tilemap.tile_index_at(current.x, current.y)
 
         best_safe_center: tuple[float, float] | None = None
         best_safe_dist2 = float("inf")
         best_any_center: tuple[float, float] | None = None
         best_any_dist2 = float("inf")
 
-        # Keep snap correction local so rotation never jumps across the map.
-        for ty in range(current_ty - 1, current_ty + 2):
-            for tx in range(current_tx - 1, current_tx + 2):
+        for ty in range(tilemap.height):
+            for tx in range(tilemap.width):
                 tile_type = tilemap.tile_type_at(tx, ty)
                 if tile_type == WALL:
                     continue
