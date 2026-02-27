@@ -84,7 +84,7 @@ class MainMenuScene:
         surface.blit(title, title_rect)
 
         subtitle = self.info_font.render(
-            "좌클릭 CCW / 우클릭 CW(기본: 0키 홀드 필요)",
+            "좌클릭/터치로 중력을 90도 반시계 회전",
             True,
             (178, 193, 228),
         )

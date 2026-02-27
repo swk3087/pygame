@@ -127,18 +127,13 @@ class GameScene:
 
         click_pos = None
         rotate_delta = 0
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button in {1, 3}:
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             click_pos = self.game.window_to_base(event.pos)
-            if event.button == 1:
-                rotate_delta = 1
-            elif event.button == 3:
-                require_zero = bool(self.game.settings.get("require_zero_for_right_click", True))
-                if not require_zero or self.zero_key_held:
-                    rotate_delta = -1
+            rotate_delta = 1
         elif event.type == pygame.FINGERDOWN:
             click_pos = self.game.finger_to_base(event.x, event.y)
             if click_pos is not None:
-                rotate_delta = 1 if click_pos[0] < BASE_W // 2 else -1
+                rotate_delta = 1
         if click_pos is None:
             return
 

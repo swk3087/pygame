@@ -28,7 +28,6 @@ DEFAULT_SETTINGS = {
     "fullscreen": True,
     "screen_scale": 1,
     "screen_shake": True,
-    "require_zero_for_right_click": True,
     "show_hud_while_zero_held": True,
     "high_contrast_ui": False,
     "reduced_motion": False,

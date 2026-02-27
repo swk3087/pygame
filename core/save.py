@@ -31,9 +31,6 @@ def sanitize_settings(raw: Any) -> dict[str, Any]:
     scale = safe_int(raw.get("screen_scale"), settings["screen_scale"])
     settings["screen_scale"] = int(clamp(scale, 1, 3))
     settings["screen_shake"] = bool(raw.get("screen_shake", settings["screen_shake"]))
-    settings["require_zero_for_right_click"] = bool(
-        raw.get("require_zero_for_right_click", settings["require_zero_for_right_click"])
-    )
     settings["show_hud_while_zero_held"] = bool(
         raw.get("show_hud_while_zero_held", settings["show_hud_while_zero_held"])
     )

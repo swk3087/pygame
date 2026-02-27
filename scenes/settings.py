@@ -10,7 +10,6 @@ class SettingsScene:
     BOOL_KEYS = {
         "fullscreen",
         "screen_shake",
-        "require_zero_for_right_click",
         "show_hud_while_zero_held",
         "high_contrast_ui",
         "reduced_motion",
@@ -21,7 +20,6 @@ class SettingsScene:
         "fullscreen": "전체화면",
         "screen_scale": "화면 배율",
         "screen_shake": "화면 흔들림",
-        "require_zero_for_right_click": "우클릭 0키 필요",
         "show_hud_while_zero_held": "HUD 0키 홀드 표시",
         "high_contrast_ui": "고대비 UI",
         "reduced_motion": "모션 감소",
@@ -40,7 +38,6 @@ class SettingsScene:
             "fullscreen",
             "screen_scale",
             "screen_shake",
-            "require_zero_for_right_click",
             "show_hud_while_zero_held",
             "high_contrast_ui",
             "reduced_motion",
