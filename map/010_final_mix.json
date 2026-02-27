@@ -3,7 +3,8 @@
     "id": "010_final_mix",
     "name": "고난도 3: 파이널 스위치",
     "author": "map-maker",
-    "version": 1
+    "version": 1,
+    "difficulty": "hard"
   },
   "tile_size": 32,
   "width": 20,

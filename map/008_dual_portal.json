@@ -3,7 +3,8 @@
     "id": "008_dual_portal",
     "name": "고난도 1: 듀얼 포탈 라인",
     "author": "map-maker",
-    "version": 1
+    "version": 1,
+    "difficulty": "hard"
   },
   "tile_size": 32,
   "width": 20,

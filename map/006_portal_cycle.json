@@ -3,7 +3,8 @@
     "id": "006_portal_cycle",
     "name": "중간 3: 포탈 순환",
     "author": "map-maker",
-    "version": 1
+    "version": 1,
+    "difficulty": "mid"
   },
   "tile_size": 32,
   "width": 20,

@@ -3,7 +3,8 @@
     "id": "002_basic",
     "name": "튜토리얼 2: 코너 이동",
     "author": "map-maker",
-    "version": 1
+    "version": 1,
+    "difficulty": "tutorial"
   },
   "tile_size": 32,
   "width": 20,

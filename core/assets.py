@@ -9,12 +9,51 @@ class AssetManager:
     def __init__(self, asset_root: Path) -> None:
         self.asset_root = asset_root
         self._font_cache: dict[tuple[int, bool], pygame.font.Font] = {}
-        self._font_name = self._pick_ui_font_name()
+        self._font_path = self._pick_project_font_path()
+        self._font_name = self._pick_ui_font_name() if self._font_path is None else ""
+        self._font_source = (
+            f"project:{self._font_path.name}" if self._font_path is not None else f"system:{self._font_name}"
+        )
+        self._ui_scale_percent = 100
         self.master_volume = 0.7
         self._mixer_ready = False
         self._sounds: dict[str, pygame.mixer.Sound] = {}
         self._setup_audio()
         self._load_optional_sounds()
+
+    def font_source(self) -> str:
+        return self._font_source
+
+    def set_ui_scale(self, ui_scale_percent: int) -> None:
+        safe_scale = max(50, min(200, int(ui_scale_percent)))
+        if safe_scale == self._ui_scale_percent:
+            return
+        self._ui_scale_percent = safe_scale
+        self._font_cache.clear()
+
+    def _scaled_size(self, size: int) -> int:
+        return max(8, int(round(size * self._ui_scale_percent / 100.0)))
+
+    def _pick_project_font_path(self) -> Path | None:
+        fonts_dir = self.asset_root / "fonts"
+        if not fonts_dir.exists():
+            return None
+        candidates = sorted(
+            [
+                path
+                for path in fonts_dir.iterdir()
+                if path.is_file() and path.suffix.lower() in {".ttf", ".otf", ".ttc"}
+            ],
+            key=lambda p: p.name.lower(),
+        )
+        if not candidates:
+            return None
+        preferred_names = ("notosanskr", "nanum", "malgun", "gothic", "korean", "kr")
+        for path in candidates:
+            lowered = path.name.lower().replace(" ", "")
+            if any(token in lowered for token in preferred_names):
+                return path
+        return candidates[0]
 
     @staticmethod
     def _pick_ui_font_name() -> str:
@@ -62,10 +101,26 @@ class AssetManager:
         self.set_master_volume(int(self.master_volume * 100))
 
     def font(self, size: int, bold: bool = False) -> pygame.font.Font:
-        key = (size, bold)
+        scaled_size = self._scaled_size(size)
+        key = (scaled_size, bold)
         if key in self._font_cache:
             return self._font_cache[key]
-        font = pygame.font.SysFont(self._font_name, size, bold=bold)
+        font: pygame.font.Font
+        if self._font_path is not None:
+            try:
+                font = pygame.font.Font(str(self._font_path), scaled_size)
+                font.set_bold(bold)
+            except (OSError, pygame.error):
+                self._font_path = None
+                self._font_name = self._pick_ui_font_name()
+                self._font_source = f"system:{self._font_name}"
+                font = pygame.font.SysFont(self._font_name, scaled_size, bold=bold)
+        else:
+            try:
+                font = pygame.font.SysFont(self._font_name, scaled_size, bold=bold)
+            except pygame.error:
+                font = pygame.font.Font(None, scaled_size)
+                font.set_bold(bold)
         self._font_cache[key] = font
         return font
 

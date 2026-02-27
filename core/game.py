@@ -15,7 +15,7 @@ from core.save import (
     write_save_data,
 )
 from core.scene_manager import SceneManager
-from gameplay.tilemap import TileMap
+from gameplay.tilemap import MapValidationError, TileMap
 
 
 @dataclass(slots=True)
@@ -24,6 +24,12 @@ class LevelEntry:
     path: Path
     level_id: str
     name: str
+    difficulty: str
+    valid: bool
+    issue: str | None
+    spike_count: int
+    portal_group_count: int
+    size_text: str
 
 
 class Game:
@@ -36,7 +42,9 @@ class Game:
         self.settings = self.save_data["settings"]
 
         self.assets = AssetManager(Path("assets"))
+        self.assets.set_ui_scale(int(self.settings.get("ui_scale_percent", 100)))
         self.assets.set_master_volume(self.settings["master_volume"])
+        print(f"[assets] ui font source: {self.assets.font_source()}")
         self.scene_manager = SceneManager()
         self.clock = pygame.time.Clock()
         self.running = True
@@ -58,8 +66,34 @@ class Game:
         map_dir.mkdir(exist_ok=True, parents=True)
         paths = sorted(map_dir.glob("*.json"), key=lambda p: p.name.lower())
         for index, path in enumerate(paths):
-            level_id, level_name = TileMap.read_level_meta(path)
-            entries.append(LevelEntry(index=index, path=path, level_id=level_id, name=level_name))
+            level_id, level_name, difficulty = TileMap.read_level_meta(path)
+            valid = True
+            issue: str | None = None
+            spike_count = 0
+            portal_group_count = 0
+            size_text = "?"
+            try:
+                tilemap = TileMap.from_json(path)
+                spike_count = len(tilemap.spike_tiles)
+                portal_group_count = len(tilemap.portal_groups)
+                size_text = f"{tilemap.width}x{tilemap.height}"
+            except MapValidationError as exc:
+                valid = False
+                issue = str(exc)
+            entries.append(
+                LevelEntry(
+                    index=index,
+                    path=path,
+                    level_id=level_id,
+                    name=level_name,
+                    difficulty=difficulty,
+                    valid=valid,
+                    issue=issue,
+                    spike_count=spike_count,
+                    portal_group_count=portal_group_count,
+                    size_text=size_text,
+                )
+            )
         return entries
 
     def _ensure_unlock_bounds(self) -> None:
@@ -117,8 +151,15 @@ class Game:
         self.save_data["settings"] = self.settings
         if key == "master_volume":
             self.assets.set_master_volume(int(self.settings["master_volume"]))
+        if key == "ui_scale_percent":
+            self.assets.set_ui_scale(int(self.settings["ui_scale_percent"]))
         if key in {"fullscreen", "screen_scale"}:
             self._apply_display_mode()
+        scene = self.scene_manager.current_scene()
+        if scene is not None:
+            on_settings_changed = getattr(scene, "on_settings_changed", None)
+            if callable(on_settings_changed):
+                on_settings_changed()
         self.save()
 
     def save(self) -> None:
@@ -130,9 +171,35 @@ class Game:
     def start_level(self, level_index: int) -> None:
         if level_index < 0 or level_index >= len(self.level_entries):
             return
+        entry = self.level_entries[level_index]
+        if not entry.valid:
+            print(f"[level] start blocked (invalid map): {entry.path.name} - {entry.issue}")
+            return
         from scenes.game_scene import GameScene
 
         self.scene_manager.replace(GameScene(self, level_index))
+
+    def start_first_playable_level(self) -> None:
+        unlocked = int(self.save_data.get("unlocked_level_count", 1))
+        for entry in self.level_entries:
+            if entry.index >= unlocked:
+                continue
+            if entry.valid:
+                self.start_level(entry.index)
+                return
+        if self.level_entries:
+            self.open_level_select()
+
+    def next_playable_level_index(self, current_index: int) -> int | None:
+        unlocked = int(self.save_data.get("unlocked_level_count", 1))
+        for entry in self.level_entries:
+            if entry.index <= current_index:
+                continue
+            if entry.index >= unlocked:
+                continue
+            if entry.valid:
+                return entry.index
+        return None
 
     def open_main_menu(self) -> None:
         from scenes.main_menu import MainMenuScene
@@ -169,6 +236,8 @@ class Game:
             )
         update_best_record(self.save_data, level_id, clicks, time_sec)
         self.save()
+        next_index = self.next_playable_level_index(level_index)
+        result_data["next_level_index"] = next_index
         self.open_results(result_data)
 
     def run(self) -> None:

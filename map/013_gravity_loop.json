@@ -3,7 +3,8 @@
     "id": "013_gravity_loop",
     "name": "고난도 6: 중력 루프",
     "author": "map-maker",
-    "version": 1
+    "version": 1,
+    "difficulty": "hard"
   },
   "tile_size": 32,
   "width": 20,
@@ -39,4 +40,3 @@
     "allow_spikes": true
   }
 }
-

@@ -5,11 +5,11 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
-from core.config import DEFAULT_SETTINGS
+from core.config import DEFAULT_SETTINGS, UI_SCALE_OPTIONS
 from core.utils import clamp, safe_int
 
 
-SAVE_SCHEMA_VERSION = 1
+SAVE_SCHEMA_VERSION = 2
 
 
 def default_save_data() -> dict[str, Any]:
@@ -31,6 +31,16 @@ def sanitize_settings(raw: Any) -> dict[str, Any]:
     scale = safe_int(raw.get("screen_scale"), settings["screen_scale"])
     settings["screen_scale"] = int(clamp(scale, 1, 3))
     settings["screen_shake"] = bool(raw.get("screen_shake", settings["screen_shake"]))
+    settings["require_zero_for_right_click"] = bool(
+        raw.get("require_zero_for_right_click", settings["require_zero_for_right_click"])
+    )
+    settings["show_hud_while_zero_held"] = bool(
+        raw.get("show_hud_while_zero_held", settings["show_hud_while_zero_held"])
+    )
+    settings["high_contrast_ui"] = bool(raw.get("high_contrast_ui", settings["high_contrast_ui"]))
+    settings["reduced_motion"] = bool(raw.get("reduced_motion", settings["reduced_motion"]))
+    requested_ui_scale = safe_int(raw.get("ui_scale_percent"), settings["ui_scale_percent"])
+    settings["ui_scale_percent"] = min(UI_SCALE_OPTIONS, key=lambda x: abs(x - requested_ui_scale))
     return settings
 
 
@@ -38,6 +48,7 @@ def sanitize_save_data(raw: Any) -> dict[str, Any]:
     data = default_save_data()
     if not isinstance(raw, dict):
         return data
+    data["schema_version"] = SAVE_SCHEMA_VERSION
 
     unlocked = safe_int(raw.get("unlocked_level_count"), 1)
     data["unlocked_level_count"] = max(1, unlocked)
@@ -96,4 +107,3 @@ def update_best_record(
     better = clicks < prev_clicks or (clicks == prev_clicks and time_sec < prev_time)
     if better:
         best_records[level_id] = {"clicks": clicks, "time_sec": time_sec}
-

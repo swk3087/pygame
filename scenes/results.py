@@ -17,8 +17,7 @@ class ResultsScene:
         self.buttons = self._build_buttons()
 
     def _build_buttons(self) -> list[UIButton]:
-        level_index = int(self.result_data.get("level_index", 0))
-        has_next = level_index + 1 < len(self.game.level_entries)
+        has_next = self.result_data.get("next_level_index") is not None
         labels = [
             ("다음", "next", has_next),
             ("재시도", "retry", True),
@@ -57,7 +56,9 @@ class ResultsScene:
     def _activate(self, value: str) -> None:
         level_index = int(self.result_data.get("level_index", 0))
         if value == "next":
-            self.game.start_level(level_index + 1)
+            next_level_index = self.result_data.get("next_level_index")
+            if isinstance(next_level_index, int):
+                self.game.start_level(next_level_index)
         elif value == "retry":
             self.game.start_level(level_index)
         elif value == "back":
@@ -96,9 +97,10 @@ class ResultsScene:
             surface.blit(surf, surf.get_rect(center=(480, 188 + idx * 44)))
 
         hover = self.game.window_to_base(pygame.mouse.get_pos())
+        high_contrast = bool(self.game.settings.get("high_contrast_ui", False))
         for button in self.buttons:
             hovered = hover is not None and button.rect.collidepoint(hover)
-            draw_button(surface, self.button_font, button, hovered)
+            draw_button(surface, self.button_font, button, hovered, high_contrast=high_contrast)
 
         info = self.info_font.render("ESC: 레벨 선택으로 돌아가기", True, (180, 198, 226))
         surface.blit(info, info.get_rect(center=(480, 486)))
@@ -116,4 +118,3 @@ class ResultsScene:
             pygame.draw.line(surface, color, (0, y), (surface.get_width(), y))
         pygame.draw.circle(surface, (32, 80, 46), (160, 120), 140)
         pygame.draw.circle(surface, (42, 100, 58), (820, 420), 180)
-

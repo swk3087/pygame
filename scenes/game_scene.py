@@ -31,11 +31,7 @@ class GameScene:
         self.game = game
         self.level_index = level_index
         self.level_entry = self.game.level_entries[level_index]
-        self.title_font = self.game.assets.font(30, bold=True)
-        self.hud_font = self.game.assets.font(22)
-        self.info_font = self.game.assets.font(20)
-        self.pause_font = self.game.assets.font(28, bold=True)
-        self.button_font = self.game.assets.font(24)
+        self._reload_fonts()
 
         self.fade_alpha = 180.0
         self.load_error: str | None = None
@@ -45,7 +41,6 @@ class GameScene:
 
         self.paused = False
         self.pause_buttons = self._build_pause_buttons()
-        self.show_ui_text = False
         self.zero_key_held = False
 
         self.gravity_dir = 0
@@ -66,6 +61,16 @@ class GameScene:
         self.map_draw_origin = pygame.Vector2(0.0, 0.0)
 
         self._load_map()
+
+    def _reload_fonts(self) -> None:
+        self.title_font = self.game.assets.font(30, bold=True)
+        self.hud_font = self.game.assets.font(22)
+        self.info_font = self.game.assets.font(20)
+        self.pause_font = self.game.assets.font(28, bold=True)
+        self.button_font = self.game.assets.font(24)
+
+    def on_settings_changed(self) -> None:
+        self._reload_fonts()
 
     def _load_map(self) -> None:
         try:
@@ -115,7 +120,6 @@ class GameScene:
                 return
             if event.key in {pygame.K_0, pygame.K_KP0}:
                 self.zero_key_held = True
-                self.show_ui_text = not self.show_ui_text
                 return
             if event.key == pygame.K_r and not self.load_error:
                 self.game.start_level(self.level_index)
@@ -127,8 +131,10 @@ class GameScene:
             click_pos = self.game.window_to_base(event.pos)
             if event.button == 1:
                 rotate_delta = 1
-            elif event.button == 3 and self.zero_key_held:
-                rotate_delta = -1
+            elif event.button == 3:
+                require_zero = bool(self.game.settings.get("require_zero_for_right_click", True))
+                if not require_zero or self.zero_key_held:
+                    rotate_delta = -1
         elif event.type == pygame.FINGERDOWN:
             click_pos = self.game.finger_to_base(event.x, event.y)
             if click_pos is not None:
@@ -161,6 +167,36 @@ class GameScene:
                     self.game.open_main_menu()
                 return
 
+    def _motion_enabled(self) -> bool:
+        return not bool(self.game.settings.get("reduced_motion", False))
+
+    def _spawn_burst(
+        self,
+        center: tuple[float, float],
+        count: int,
+        color: tuple[int, int, int],
+        speed_min: float,
+        speed_max: float,
+        life_min: float,
+        life_max: float,
+    ) -> None:
+        if not self._motion_enabled():
+            return
+        self.particles.spawn_burst(
+            center=center,
+            count=count,
+            color=color,
+            speed_min=speed_min,
+            speed_max=speed_max,
+            life_min=life_min,
+            life_max=life_max,
+        )
+
+    def _draw_hud_enabled(self) -> bool:
+        if bool(self.game.settings.get("show_hud_while_zero_held", True)):
+            return self.zero_key_held
+        return True
+
     def _try_rotate_gravity(self, rotate_delta: int) -> None:
         if self.rotate_cooldown > 0.0 or self.player is None or self.tilemap is None:
             return
@@ -175,7 +211,7 @@ class GameScene:
         self.click_count += 1
         self.game.assets.play("rotate")
         self._add_shake(0.08, 2.8)
-        self.particles.spawn_burst(
+        self._spawn_burst(
             center=self.player.center,
             count=random.randint(CLICK_PARTICLE_MIN, CLICK_PARTICLE_MAX),
             color=(145, 191, 255),
@@ -208,7 +244,7 @@ class GameScene:
                 self.death_count += 1
                 self.player.respawn(self.tilemap.spawn_px)
                 self._add_shake(0.1, 4.5)
-                self.particles.spawn_burst(
+                self._spawn_burst(
                     center=self.player.center,
                     count=14,
                     color=(214, 86, 86),
@@ -223,10 +259,13 @@ class GameScene:
             tp = self.portal_system.try_teleport(self.player.rect, self.elapsed_sec)
             if tp is not None:
                 self.player.set_center(tp.destination_center)
-                self.teleport_flash_sec = TELEPORT_FLASH_SEC
+                if self._motion_enabled():
+                    self.teleport_flash_sec = TELEPORT_FLASH_SEC
+                else:
+                    self.teleport_flash_sec = 0.0
                 self._add_shake(0.06, 3.6)
                 self.game.assets.play("teleport")
-                self.particles.spawn_burst(
+                self._spawn_burst(
                     center=self.player.center,
                     count=18,
                     color=(108, 238, 224),
@@ -248,7 +287,7 @@ class GameScene:
             return
         self.cleared = True
         self.game.assets.play("clear")
-        self.particles.spawn_burst(
+        self._spawn_burst(
             center=self.player.center if self.player else (0, 0),
             count=28,
             color=(140, 245, 158),
@@ -268,11 +307,15 @@ class GameScene:
         self.game.complete_level(result)
 
     def _add_shake(self, duration: float, strength: float) -> None:
+        if not self._motion_enabled():
+            return
         self.screen_shake_timer = max(self.screen_shake_timer, duration)
         self.screen_shake_strength = max(self.screen_shake_strength, strength)
 
     def _camera_offset(self) -> pygame.Vector2:
         offset = self.map_draw_origin.copy()
+        if not self._motion_enabled():
+            return offset
         if not self.game.settings.get("screen_shake", True):
             return offset
         if self.screen_shake_timer <= 0.0:
@@ -297,7 +340,7 @@ class GameScene:
         self.tilemap.draw(surface, self.elapsed_sec, camera_offset)
         self.particles.draw(surface, camera_offset)
         self._draw_player(surface, camera_offset)
-        if self.show_ui_text:
+        if self._draw_hud_enabled():
             self._draw_hud(surface)
 
         if self.teleport_flash_sec > 0:
@@ -329,8 +372,14 @@ class GameScene:
         if self.player is None:
             return
         rect = self.player.rect.move(int(camera_offset.x), int(camera_offset.y))
-        pygame.draw.rect(surface, (255, 206, 92), rect, border_radius=4)
-        pygame.draw.rect(surface, (72, 58, 26), rect, width=2, border_radius=4)
+        if self.game.settings.get("high_contrast_ui", False):
+            fill = (255, 230, 110)
+            edge = (12, 12, 12)
+        else:
+            fill = (255, 206, 92)
+            edge = (72, 58, 26)
+        pygame.draw.rect(surface, fill, rect, border_radius=4)
+        pygame.draw.rect(surface, edge, rect, width=2, border_radius=4)
 
     def _draw_pause_overlay(self, surface: pygame.Surface) -> None:
         overlay = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
@@ -341,9 +390,10 @@ class GameScene:
         surface.blit(title, title.get_rect(center=(480, 132)))
 
         hover = self.game.window_to_base(pygame.mouse.get_pos())
+        high_contrast = bool(self.game.settings.get("high_contrast_ui", False))
         for button in self.pause_buttons:
             hovered = hover is not None and button.rect.collidepoint(hover)
-            draw_button(surface, self.button_font, button, hovered)
+            draw_button(surface, self.button_font, button, hovered, high_contrast=high_contrast)
 
     def _draw_load_error(self, surface: pygame.Surface) -> None:
         msg_title = self.title_font.render("맵 로드 실패", True, (242, 122, 122))
@@ -355,7 +405,13 @@ class GameScene:
 
         hover = self.game.window_to_base(pygame.mouse.get_pos())
         hovered = hover is not None and self.error_back_button.rect.collidepoint(hover)
-        draw_button(surface, self.button_font, self.error_back_button, hovered)
+        draw_button(
+            surface,
+            self.button_font,
+            self.error_back_button,
+            hovered,
+            high_contrast=bool(self.game.settings.get("high_contrast_ui", False)),
+        )
 
     @staticmethod
     def _draw_background(surface: pygame.Surface) -> None:

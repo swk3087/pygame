@@ -3,7 +3,8 @@
     "id": "012_spike_lab",
     "name": "고난도 5: 스파이크 연구소",
     "author": "map-maker",
-    "version": 1
+    "version": 1,
+    "difficulty": "hard"
   },
   "tile_size": 32,
   "width": 20,
@@ -37,4 +38,3 @@
     "allow_spikes": true
   }
 }
-

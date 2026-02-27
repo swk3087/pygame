@@ -3,7 +3,8 @@
     "id": "004_spike",
     "name": "중간 1: 가시 회피",
     "author": "map-maker",
-    "version": 1
+    "version": 1,
+    "difficulty": "mid"
   },
   "tile_size": 32,
   "width": 20,

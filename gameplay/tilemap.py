@@ -16,6 +16,7 @@ SPIKE = "SPIKE"
 PORTAL = "PORTAL"
 
 SOLID_TILES = {WALL}
+DIFFICULTY_VALUES = {"tutorial", "mid", "hard"}
 
 
 class MapValidationError(Exception):
@@ -214,19 +215,37 @@ class TileMap:
         return portal_id
 
     @classmethod
-    def read_level_meta(cls, path: Path) -> tuple[str, str]:
+    def read_level_meta(cls, path: Path) -> tuple[str, str, str]:
+        default_name = path.stem
+        default_difficulty = cls.infer_difficulty(path.stem, default_name)
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError):
-            return path.stem, f"{path.stem} (오류)"
+            return path.stem, f"{path.stem} (오류)", default_difficulty
         if not isinstance(data, dict):
-            return path.stem, f"{path.stem} (오류)"
+            return path.stem, f"{path.stem} (오류)", default_difficulty
         meta = data.get("meta", {})
         if not isinstance(meta, dict):
-            return path.stem, path.stem
+            return path.stem, default_name, default_difficulty
         level_id = str(meta.get("id", path.stem))
-        level_name = str(meta.get("name", path.stem))
-        return level_id, level_name
+        level_name = str(meta.get("name", default_name))
+        requested_difficulty = str(meta.get("difficulty", "")).strip().lower()
+        if requested_difficulty in DIFFICULTY_VALUES:
+            difficulty = requested_difficulty
+        else:
+            difficulty = cls.infer_difficulty(path.stem, level_name)
+        return level_id, level_name, difficulty
+
+    @staticmethod
+    def infer_difficulty(file_stem: str, level_name: str) -> str:
+        lowered = f"{file_stem} {level_name}".lower()
+        if "tutorial" in lowered or "튜토리얼" in lowered:
+            return "tutorial"
+        if "고난도" in lowered or "hard" in lowered:
+            return "hard"
+        if "중간" in lowered or "mid" in lowered:
+            return "mid"
+        return "mid"
 
     def tile_rect(self, tx: int, ty: int) -> pygame.Rect:
         return pygame.Rect(tx * self.tile_size, ty * self.tile_size, self.tile_size, self.tile_size)
