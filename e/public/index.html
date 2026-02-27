@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gravity Map Maker</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div class="app-root">
+      <main class="canvas-area">
+        <canvas id="editorCanvas"></canvas>
+      </main>
+      <aside class="panel">
+        <section class="group">
+          <h2>파일</h2>
+          <div class="row">
+            <label for="fileName">파일명</label>
+            <input id="fileName" type="text" value="new_map.json" />
+          </div>
+          <div class="row buttons">
+            <button id="newMapBtn">새 맵</button>
+            <button id="saveBtn">저장</button>
+            <button id="saveAsBtn">다른 이름 저장</button>
+          </div>
+          <div class="row">
+            <label for="mapSelect">맵 목록</label>
+            <select id="mapSelect"></select>
+          </div>
+          <div class="row buttons">
+            <button id="reloadListBtn">목록 새로고침</button>
+            <button id="loadBtn">불러오기</button>
+            <button id="validateBtn">검증</button>
+          </div>
+        </section>
+
+        <section class="group">
+          <h2>툴</h2>
+          <div class="row buttons">
+            <button data-tool="pen" class="tool-btn">펜</button>
+            <button data-tool="rect" class="tool-btn">사각 채우기</button>
+            <button data-tool="select" class="tool-btn">선택</button>
+          </div>
+          <div class="row buttons tile-palette">
+            <button data-tile="EMPTY" class="tile-btn">EMPTY</button>
+            <button data-tile="WALL" class="tile-btn">WALL</button>
+            <button data-tile="SPAWN" class="tile-btn">SPAWN</button>
+            <button data-tile="GOAL" class="tile-btn">GOAL</button>
+            <button data-tile="SPIKE" class="tile-btn">SPIKE</button>
+            <button data-tile="PORTAL" class="tile-btn">PORTAL</button>
+          </div>
+          <div class="row">
+            <label for="portalId">포탈 ID</label>
+            <input id="portalId" type="number" min="1" value="1" />
+          </div>
+        </section>
+
+        <section class="group">
+          <h2>메타</h2>
+          <div class="row">
+            <label for="metaId">ID</label>
+            <input id="metaId" type="text" />
+          </div>
+          <div class="row">
+            <label for="metaName">이름</label>
+            <input id="metaName" type="text" />
+          </div>
+          <div class="row">
+            <label for="metaAuthor">작성자</label>
+            <input id="metaAuthor" type="text" />
+          </div>
+          <div class="row">
+            <label for="metaVersion">버전</label>
+            <input id="metaVersion" type="number" min="1" />
+          </div>
+          <div class="row">
+            <label for="tileSize">타일 크기</label>
+            <input id="tileSize" type="number" min="1" />
+          </div>
+          <div class="row two">
+            <div>
+              <label for="mapWidth">너비</label>
+              <input id="mapWidth" type="number" min="8" max="80" />
+            </div>
+            <div>
+              <label for="mapHeight">높이</label>
+              <input id="mapHeight" type="number" min="8" max="80" />
+            </div>
+          </div>
+          <div class="row buttons">
+            <button id="resizeBtn">맵 크기 적용</button>
+          </div>
+        </section>
+
+        <section class="group">
+          <h2>룰 / 튜토리얼</h2>
+          <div class="row">
+            <label for="allowSpikes">allow_spikes</label>
+            <select id="allowSpikes">
+              <option value="true">true</option>
+              <option value="false">false</option>
+            </select>
+          </div>
+          <div class="row">
+            <label for="timeLimit">time_limit_sec</label>
+            <input id="timeLimit" type="text" placeholder="null 또는 숫자" />
+          </div>
+          <div class="row">
+            <label for="tutorialJson">tutorial JSON</label>
+            <textarea id="tutorialJson" rows="5"></textarea>
+          </div>
+        </section>
+
+        <section class="group">
+          <h2>오류/상태</h2>
+          <ul id="errorList"></ul>
+          <p id="statusText">준비됨</p>
+          <p class="shortcut">
+            단축키: Ctrl+Z/Y, Ctrl+C/V, Delete, Space+Drag(팬), Wheel(줌)
+          </p>
+        </section>
+      </aside>
+    </div>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
+

@@ -1,0 +1,17 @@
+{
+  "name": "gravity-map-editor",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Standalone web map editor for Gravity Rotate",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
+
