@@ -240,6 +240,23 @@ class Game:
         result_data["next_level_index"] = next_index
         self.open_results(result_data)
 
+    def skip_level(self, level_index: int) -> None:
+        if level_index < 0 or level_index >= len(self.level_entries):
+            return
+        unlocked = int(self.save_data.get("unlocked_level_count", 1))
+        unlock_target = level_index + 2
+        if self.level_entries:
+            self.save_data["unlocked_level_count"] = min(
+                len(self.level_entries),
+                max(unlocked, unlock_target),
+            )
+        self.save()
+        next_index = self.next_playable_level_index(level_index)
+        if next_index is not None:
+            self.start_level(next_index)
+            return
+        self.open_level_select()
+
     def run(self) -> None:
         from scenes.main_menu import MainMenuScene
 

@@ -89,13 +89,14 @@ class GameScene:
 
     def _build_pause_buttons(self) -> list[UIButton]:
         center_x = 480
-        top = 180
+        top = 152
         width = 260
-        height = 52
+        height = 46
         gap = 10
         labels = [
             ("계속", "resume"),
             ("다시시작", "restart"),
+            ("스킵", "skip"),
             ("레벨선택", "levels"),
             ("메인메뉴", "menu"),
         ]
@@ -104,7 +105,10 @@ class GameScene:
             rect = pygame.Rect(0, 0, width, height)
             rect.centerx = center_x
             rect.y = top + i * (height + gap)
-            buttons.append(UIButton(rect=rect, label=label, value=value, enabled=True))
+            enabled = True
+            if value == "skip":
+                enabled = self.level_index < len(self.game.level_entries) - 1
+            buttons.append(UIButton(rect=rect, label=label, value=value, enabled=enabled))
         return buttons
 
     def handle_event(self, event) -> None:
@@ -152,11 +156,15 @@ class GameScene:
 
     def _handle_pause_click(self, click_pos: tuple[int, int]) -> None:
         for button in self.pause_buttons:
+            if not button.enabled:
+                continue
             if button.rect.collidepoint(click_pos):
                 if button.value == "resume":
                     self.paused = False
                 elif button.value == "restart":
                     self.game.start_level(self.level_index)
+                elif button.value == "skip":
+                    self.game.skip_level(self.level_index)
                 elif button.value == "levels":
                     self.game.open_level_select()
                 elif button.value == "menu":
@@ -410,7 +418,10 @@ class GameScene:
         surface.blit(overlay, (0, 0))
 
         title = self.pause_font.render("일시정지", True, (245, 245, 248))
-        surface.blit(title, title.get_rect(center=(480, 132)))
+        surface.blit(title, title.get_rect(center=(480, 110)))
+
+        hint = self.info_font.render("스킵은 현재 레벨을 넘기고 다음 레벨을 해금합니다.", True, (176, 196, 230))
+        surface.blit(hint, hint.get_rect(center=(480, 134)))
 
         hover = self.game.window_to_base(pygame.mouse.get_pos())
         high_contrast = bool(self.game.settings.get("high_contrast_ui", False))
