@@ -1,0 +1,1 @@
+Placeholder vector assets for UI/style reference.\nCurrent game code uses primitive drawing, so these files are optional.\n

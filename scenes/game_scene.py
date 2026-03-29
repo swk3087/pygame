@@ -204,7 +204,6 @@ class GameScene:
         self.player.snap_to_nearest_tile(self.tilemap)
         self.rotate_cooldown = ROTATE_COOLDOWN_SEC
         self.click_count += 1
-        self.game.assets.play("rotate")
         self._add_shake(0.08, 2.8)
         self._spawn_burst(
             center=self.player.center,
@@ -259,7 +258,6 @@ class GameScene:
                 else:
                     self.teleport_flash_sec = 0.0
                 self._add_shake(0.06, 3.6)
-                self.game.assets.play("teleport")
                 self._spawn_burst(
                     center=self.player.center,
                     count=18,
@@ -281,7 +279,6 @@ class GameScene:
         if self.cleared or self.tilemap is None:
             return
         self.cleared = True
-        self.game.assets.play("clear")
         self._spawn_burst(
             center=self.player.center if self.player else (0, 0),
             count=28,

@@ -17,9 +17,11 @@ class AssetManager:
         self._ui_scale_percent = 100
         self.master_volume = 0.7
         self._mixer_ready = False
-        self._sounds: dict[str, pygame.mixer.Sound] = {}
+        self._bgm_loaded = False
+        self._bgm_path: Path | None = None
         self._setup_audio()
-        self._load_optional_sounds()
+        self._load_optional_bgm()
+        self.set_master_volume(int(self.master_volume * 100))
 
     def font_source(self) -> str:
         return self._font_source
@@ -83,22 +85,26 @@ class AssetManager:
         except pygame.error:
             self._mixer_ready = False
 
-    def _load_optional_sounds(self) -> None:
+    def _load_optional_bgm(self) -> None:
         if not self._mixer_ready:
             return
-        sound_files = {
-            "rotate": self.asset_root / "sfx" / "rotate.wav",
-            "teleport": self.asset_root / "sfx" / "teleport.wav",
-            "clear": self.asset_root / "sfx" / "clear.wav",
-        }
-        for key, path in sound_files.items():
+        bgm_candidates = [
+            self.asset_root / "sfx" / "bgm.ogg",
+            self.asset_root / "sfx" / "bgm.mp3",
+            self.asset_root / "sfx" / "bgm.wav",
+        ]
+        for path in bgm_candidates:
             if not path.exists():
                 continue
             try:
-                self._sounds[key] = pygame.mixer.Sound(str(path))
+                pygame.mixer.music.load(str(path))
+                pygame.mixer.music.play(-1)
+                self._bgm_loaded = True
+                self._bgm_path = path
+                print(f"[assets] bgm loaded: {path.name}")
+                return
             except pygame.error:
                 continue
-        self.set_master_volume(int(self.master_volume * 100))
 
     def font(self, size: int, bold: bool = False) -> pygame.font.Font:
         scaled_size = self._scaled_size(size)
@@ -126,11 +132,9 @@ class AssetManager:
 
     def set_master_volume(self, value_0_100: int) -> None:
         self.master_volume = max(0.0, min(1.0, value_0_100 / 100.0))
-        for sound in self._sounds.values():
-            sound.set_volume(self.master_volume)
+        if self._mixer_ready:
+            pygame.mixer.music.set_volume(self.master_volume)
 
     def play(self, sound_name: str) -> None:
-        sound = self._sounds.get(sound_name)
-        if sound is None:
-            return
-        sound.play()
+        # SFX intentionally disabled; kept for compatibility with old call sites.
+        _ = sound_name
