@@ -1,9 +1,9 @@
 {
   "meta": {
     "id": "030_hard_gravity_orchestra",
-    "name": "고난도 10: 엔드 오케스트라",
+    "name": "고난도 10: 오케스트라 코어",
     "author": "map-maker",
-    "version": 2,
+    "version": 3,
     "difficulty": "hard"
   },
   "tile_size": 32,

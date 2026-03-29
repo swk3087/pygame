@@ -32,6 +32,7 @@ class GameScene:
         self.level_index = level_index
         self.level_entry = self.game.level_entries[level_index]
         self._reload_fonts()
+        self.background_surface = self._build_background_surface()
 
         self.fade_alpha = 180.0
         self.load_error: str | None = None
@@ -357,6 +358,11 @@ class GameScene:
         gravity_texts = ["중력: 아래", "중력: 왼쪽", "중력: 위", "중력: 오른쪽"]
         hud = self.hud_font.render(left_text, True, (236, 236, 240))
         grav = self.hud_font.render(gravity_texts[self.gravity_dir], True, (173, 205, 249))
+        panel_w = max(hud.get_width(), grav.get_width()) + 28
+        panel = pygame.Surface((panel_w, 58), pygame.SRCALPHA)
+        pygame.draw.rect(panel, (10, 14, 22, 170), panel.get_rect(), border_radius=14)
+        pygame.draw.rect(panel, (84, 108, 150, 72), panel.get_rect(), width=2, border_radius=14)
+        surface.blit(panel, (12, 10))
         surface.blit(hud, (18, 14))
         surface.blit(grav, (18, 40))
 
@@ -364,14 +370,39 @@ class GameScene:
         if self.player is None:
             return
         rect = self.player.rect.move(int(camera_offset.x), int(camera_offset.y))
+        shadow = pygame.Surface((rect.width + 18, rect.height + 18), pygame.SRCALPHA)
+        shadow_rect = shadow.get_rect(center=(rect.centerx + 4, rect.centery + 5))
+        pygame.draw.ellipse(shadow, (0, 0, 0, 62), shadow.get_rect().inflate(-8, -8))
+        surface.blit(shadow, shadow_rect.topleft)
+
         if self.game.settings.get("high_contrast_ui", False):
-            fill = (255, 230, 110)
-            edge = (12, 12, 12)
+            fill = (255, 232, 120)
+            edge = (10, 10, 10)
+            accent = (24, 24, 24)
         else:
-            fill = (255, 206, 92)
-            edge = (72, 58, 26)
-        pygame.draw.rect(surface, fill, rect, border_radius=4)
-        pygame.draw.rect(surface, edge, rect, width=2, border_radius=4)
+            fill = (255, 208, 92)
+            edge = (84, 62, 24)
+            accent = (255, 245, 214)
+
+        outer = rect.inflate(-1, -1)
+        inner = outer.inflate(-6, -6)
+        pygame.draw.rect(surface, edge, outer, border_radius=8)
+        pygame.draw.rect(surface, fill, outer.inflate(-2, -2), border_radius=7)
+        pygame.draw.rect(surface, accent, pygame.Rect(inner.left, inner.top, inner.width, max(5, inner.height // 3)), border_radius=4)
+        pygame.draw.rect(surface, edge, outer, width=2, border_radius=8)
+
+        stripe_rect = pygame.Rect(inner.left, inner.top, inner.width, inner.height)
+        stripe_color = (118, 194, 255) if not self.game.settings.get("high_contrast_ui", False) else (255, 255, 255)
+        if self.gravity_dir == 0:
+            stripe = [(stripe_rect.left + 4, stripe_rect.top + 5), (stripe_rect.right - 4, stripe_rect.top + 5), (stripe_rect.centerx, stripe_rect.bottom - 4)]
+        elif self.gravity_dir == 1:
+            stripe = [(stripe_rect.right - 5, stripe_rect.top + 4), (stripe_rect.right - 5, stripe_rect.bottom - 4), (stripe_rect.left + 4, stripe_rect.centery)]
+        elif self.gravity_dir == 2:
+            stripe = [(stripe_rect.left + 4, stripe_rect.bottom - 5), (stripe_rect.right - 4, stripe_rect.bottom - 5), (stripe_rect.centerx, stripe_rect.top + 4)]
+        else:
+            stripe = [(stripe_rect.left + 5, stripe_rect.top + 4), (stripe_rect.left + 5, stripe_rect.bottom - 4), (stripe_rect.right - 4, stripe_rect.centery)]
+        pygame.draw.polygon(surface, stripe_color, stripe)
+        pygame.draw.polygon(surface, edge, stripe, width=1)
 
     def _draw_pause_overlay(self, surface: pygame.Surface) -> None:
         overlay = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
@@ -406,11 +437,56 @@ class GameScene:
         )
 
     @staticmethod
-    def _draw_background(surface: pygame.Surface) -> None:
+    def _blit_soft_glow(
+        surface: pygame.Surface,
+        center: tuple[int, int],
+        radius: int,
+        color: tuple[int, int, int],
+        alpha: int,
+    ) -> None:
+        glow = pygame.Surface((radius * 2 + 12, radius * 2 + 12), pygame.SRCALPHA)
+        pygame.draw.circle(glow, (*color, alpha), glow.get_rect().center, radius)
+        surface.blit(glow, glow.get_rect(center=center).topleft)
+
+    def _build_background_surface(self) -> pygame.Surface:
+        surface = pygame.Surface((BASE_W, BASE_H))
         for y in range(surface.get_height()):
             t = y / max(1, surface.get_height() - 1)
-            color = (10 + int(10 * t), 14 + int(16 * t), 24 + int(24 * t))
+            color = (
+                9 + int(22 * t),
+                14 + int(22 * t),
+                24 + int(34 * t),
+            )
             pygame.draw.line(surface, color, (0, y), (surface.get_width(), y))
+
+        horizon = pygame.Rect(0, BASE_H - 150, BASE_W, 150)
+        pygame.draw.rect(surface, (16, 22, 32), horizon)
+        for x, width, height in ((40, 120, 84), (230, 180, 108), (500, 140, 92), (710, 190, 122)):
+            pygame.draw.rect(surface, (22, 30, 42), pygame.Rect(x, BASE_H - height - 40, width, height), border_radius=10)
+            pygame.draw.rect(surface, (34, 48, 68), pygame.Rect(x + 10, BASE_H - height - 30, width - 20, 10), border_radius=5)
+
+        for x in range(0, BASE_W, 64):
+            pygame.draw.line(surface, (24, 32, 44), (x, BASE_H - 150), (x + 28, BASE_H - 170), width=2)
+
+        self._blit_soft_glow(surface, (170, 118), 120, (58, 110, 176), 42)
+        self._blit_soft_glow(surface, (512, 84), 160, (72, 138, 212), 32)
+        self._blit_soft_glow(surface, (814, 132), 110, (50, 98, 170), 34)
+
+        veil = pygame.Surface((BASE_W, BASE_H), pygame.SRCALPHA)
+        for start_x in (-120, 180, 520):
+            polygon = [
+                (start_x, 0),
+                (start_x + 180, 0),
+                (start_x + 380, BASE_H),
+                (start_x + 220, BASE_H),
+            ]
+            pygame.draw.polygon(veil, (255, 255, 255, 10), polygon)
+        surface.blit(veil, (0, 0))
+
+        return surface
+
+    def _draw_background(self, surface: pygame.Surface) -> None:
+        surface.blit(self.background_surface, (0, 0))
 
     def _draw_fade(self, surface: pygame.Surface) -> None:
         overlay = pygame.Surface(surface.get_size(), pygame.SRCALPHA)

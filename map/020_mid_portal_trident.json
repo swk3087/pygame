@@ -1,9 +1,9 @@
 {
   "meta": {
     "id": "020_mid_portal_trident",
-    "name": "중간 10: 리버스 릿지",
+    "name": "중간 10: 트라이던트 허브",
     "author": "map-maker",
-    "version": 2,
+    "version": 3,
     "difficulty": "mid"
   },
   "tile_size": 32,

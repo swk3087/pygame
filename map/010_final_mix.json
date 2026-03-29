@@ -1,9 +1,9 @@
 {
   "meta": {
     "id": "010_final_mix",
-    "name": "튜토리얼 10: 베이스 러시",
+    "name": "튜토리얼 10: 도크 베이 러시",
     "author": "map-maker",
-    "version": 2,
+    "version": 3,
     "difficulty": "tutorial"
   },
   "tile_size": 32,

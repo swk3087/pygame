@@ -290,9 +290,15 @@ class Game:
             scene.render(self.base_surface)
 
             self.screen.fill((0, 0, 0))
-            scaled = pygame.transform.smoothscale(
-                self.base_surface, (self.output_rect.width, self.output_rect.height)
+            scale_x = self.output_rect.width / BASE_W
+            scale_y = self.output_rect.height / BASE_H
+            integer_scale = (
+                abs(scale_x - round(scale_x)) < 0.01
+                and abs(scale_y - round(scale_y)) < 0.01
+                and abs(scale_x - scale_y) < 0.01
             )
+            scaler = pygame.transform.scale if integer_scale else pygame.transform.smoothscale
+            scaled = scaler(self.base_surface, (self.output_rect.width, self.output_rect.height))
             self.screen.blit(scaled, self.output_rect.topleft)
             pygame.display.flip()
 
