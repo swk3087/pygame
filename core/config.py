@@ -25,7 +25,7 @@ SAVE_FILE = Path("save.json")
 
 DEFAULT_SETTINGS = {
     "master_volume": 70,
-    "fullscreen": True,
+    "fullscreen": False,
     "screen_scale": 1,
     "screen_shake": True,
     "show_hud_while_zero_held": True,
